@@ -20,7 +20,7 @@ pip install tensorflow numpy matplotlib opencv-python
 
 Make sure you have the following files:
 
-emotion_model.keras (your trained model)
+emotion_model.keras (your trained model, use train_model.py to train)
 
 models/deploy.prototxt and models/res10_300x300_ssd_iter_140000.caffemodel (face detection model)
 
