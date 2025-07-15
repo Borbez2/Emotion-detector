@@ -1,4 +1,4 @@
-# Facial-Emotion-Recognition
+# Real-Time Facial Emotion Recognition with LLM-Based Conversational Feedback
 
 This project detects facial expressions from live webcam feed using a deep neural network trained on the FER2013 dataset. It predicts 7 emotions and displays real-time labels, confidence bars, and FPS. Then integrating with an LLM it will provide real time feedback.
 
