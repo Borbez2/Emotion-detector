@@ -25,7 +25,7 @@ This project detects facial expressions from live webcam feed using a deep neura
    - models/res10_300x300_ssd_iter_140000.caffemodel
 5.  Install and run [Ollama](https://ollama.com) and pull your preferred local LLM (like Deepseek):
 ```
-ollama pull deepseek
+ollama run deepseek-r1
 ollama serve
 ```
 ## To Run
