@@ -1,51 +1,59 @@
+# Import Libraries
+import matplotlib.pyplot as plt
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-import matplotlib.pyplot as plt
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, Input, BatchNormalization
+from tensorflow.keras.callbacks import EarlyStopping
 
-# Dataset paths
-train_dir = "Kaggle Face expression dataset/images/train"
-val_dir = "Kaggle Face expression dataset/images/validation"
+datagen = ImageDataGenerator(rescale=1./255)
 
-# Image preprocessing
-train_datagen = ImageDataGenerator(
-    rescale=1./255,
-    rotation_range=15,
-    zoom_range=0.2,
-    horizontal_flip=True
-)
-
-val_datagen = ImageDataGenerator(rescale=1./255)
-
-# Load images from folders
-train_generator = train_datagen.flow_from_directory(
-    train_dir,
+# Load Images
+train_data = datagen.flow_from_directory(
+    'FER 2013 Archive/train',
     target_size=(48, 48),
-    color_mode="grayscale",
     batch_size=64,
-    class_mode="categorical"
+    color_mode='grayscale',
+    class_mode='categorical'
 )
 
-val_generator = val_datagen.flow_from_directory(
-    val_dir,
+val_data = datagen.flow_from_directory(
+    'FER 2013 Archive/test',
     target_size=(48, 48),
-    color_mode="grayscale",
     batch_size=64,
-    class_mode="categorical"
+    color_mode='grayscale',
+    class_mode='categorical'
 )
 
-# Build the model
-model = Sequential([
-    Input(shape=(48, 48, 1)),
-    Conv2D(32, (3,3), activation='relu'),
-    MaxPooling2D(2,2),
-    Conv2D(64, (3,3), activation='relu'),
-    MaxPooling2D(2,2),
-    Flatten(),
-    Dense(128, activation='relu'),
-    Dropout(0.5),
-    Dense(train_generator.num_classes, activation='softmax')
-])
+# Build the actual model
+model = Sequential()
+
+model.add(Input(shape=(48, 48, 1)))
+
+model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
+model.add(BatchNormalization())
+model.add(MaxPooling2D((2, 2)))
+model.add(Dropout(0.25))
+
+model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+model.add(BatchNormalization())
+model.add(MaxPooling2D((2, 2)))
+model.add(Dropout(0.25))
+
+model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
+model.add(BatchNormalization())
+model.add(MaxPooling2D((2, 2)))
+model.add(Dropout(0.3))
+
+model.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
+model.add(BatchNormalization())
+model.add(MaxPooling2D((2, 2)))
+model.add(Dropout(0.4))
+
+model.add(Flatten())
+model.add(Dense(256, activation='relu'))
+model.add(Dropout(0.2))
+
+model.add(Dense(7, activation='softmax'))
 
 
 # Compile model
@@ -55,21 +63,31 @@ model.compile(
     metrics=['accuracy']
 )
 
+# Auto stop
+early_stop = EarlyStopping(
+    monitor='val_loss',
+    patience=5,
+    restore_best_weights=True
+)
+
 # Train model
 history = model.fit(
-    train_generator,
+    train_data,
     epochs=30,
-    validation_data=val_generator
+    validation_data=val_data,
+    callbacks=[early_stop]
 )
 
 # Save the model
 model.save("emotion_model.keras")
 
-# Plot training/validation accuracy
-plt.plot(history.history['loss'], label='Training Loss')  # Plot the training loss over epochs
-plt.plot(history.history['val_loss'], label='Validation Loss')  # Plot the validation loss over epochs
-plt.xlabel('Epochs')  # Label the x-axis as "Epochs"
-plt.ylabel('Loss')  # Label the y-axis as "Loss"
-plt.legend()  # Show the legend to differentiate between training and validation loss
-plt.title('Training vs Validation Loss')  # Add a title to the graph
-plt.show()  # Display the graph
+# Plot training/validation loss
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.title('Loss Over Epochs')
+plt.grid(True)
+plt.show()
+
